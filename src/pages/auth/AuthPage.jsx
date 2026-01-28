@@ -29,6 +29,7 @@ const AuthPage = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const [mode, setMode] = useState('login')
+  const [loginError, setLoginError] = useState('')
   const { loading } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
 
@@ -53,6 +54,7 @@ const AuthPage = () => {
 
   const handleLogin = async (credentials) => {
     dispatch(authStart())
+    setLoginError('')
     try {
       const userData = await authService.login(credentials)
       dispatch(loginSuccess(userData))
@@ -60,7 +62,7 @@ const AuthPage = () => {
       navigate('/dashboard')
     } catch (error) {
       dispatch(authFailure(error.message))
-      notify.error(error.message || 'Login failed')
+      setLoginError('You have entered wrong password')
     }
   }
 
@@ -178,6 +180,22 @@ const AuthPage = () => {
 
           {/* Form */}
           {renderForm()}
+
+          {/* Login Error */}
+          {mode === 'login' && loginError && (
+            <Typography 
+              variant="body2" 
+              color="error" 
+              sx={{ 
+                textAlign: 'center', 
+                mt: 2, 
+                mb: 1,
+                fontSize: '0.875rem'
+              }}
+            >
+              {loginError}
+            </Typography>
+          )}
 
           {/* Navigation Links */}
           <Box sx={{ textAlign: 'center', mt: 3 }}>

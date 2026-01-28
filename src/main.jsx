@@ -11,9 +11,10 @@ const AppWithAuth = () => {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
+    // Clear any existing auth state on app start
+    localStorage.removeItem('token')
     dispatch(initializeAuth({ 
-      isAuthenticated: !!token, 
+      isAuthenticated: false, 
       user: null 
     }))
   }, [dispatch])
