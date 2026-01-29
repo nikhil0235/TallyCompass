@@ -112,7 +112,7 @@ const HomePage = () => {
       top: 0,
       left: 0,
       overflow: 'auto',
-      background: 'linear-gradient(135deg, #a0a0a3ff 0%, #aeadaeff 50%, #918e92ff 100%)',
+      background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 50%, #ffffff 100%)',
       '&::-webkit-scrollbar': {
         width: '8px'
       },
@@ -395,7 +395,7 @@ const HomePage = () => {
       {showAuthPanel && (
       <Box sx={{ 
         flex: 1, 
-        background: 'rgba(255, 255, 255, 0.05)',
+        background: 'rgba(255, 255, 255, 0.2)',
         backdropFilter: 'blur(15px)',
         display: 'flex',
         alignItems: 'center',
@@ -434,10 +434,10 @@ const HomePage = () => {
               justifyContent: 'center'
             }}>
               <Box sx={{ textAlign: 'center', mb: 3, maxWidth: 300, mx: 'auto', width: '100%' }}>
-                <Typography variant="h5" fontWeight={600} sx={{ mb: 1, color: 'white' }}>
+                <Typography variant="h5" fontWeight={600} sx={{ mb: 1, color: 'black' }}>
                   Welcome Back
                 </Typography>
-                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)' }}>
                   Sign in to your account
                 </Typography>
               </Box>
@@ -476,7 +476,7 @@ const HomePage = () => {
                 />
 
                 {loginError && (
-                  <Typography variant="body2" color="error" sx={{ mb: 3, textAlign: 'center', color: '#ffcdd2' }}>
+                  <Typography variant="body2" color="error" sx={{ mb: 3, textAlign: 'center', color: '#d32f2f' }}>
                     {loginError}
                   </Typography>
                 )}
@@ -489,12 +489,12 @@ const HomePage = () => {
                   sx={{ 
                     mb: 3,
                     py: 2,
-                    bgcolor: 'rgba(255,255,255,0.2)',
-                    color: 'white',
-                    border: '2px solid rgba(255,255,255,0.3)',
+                    bgcolor: 'rgba(0,0,0,0.1)',
+                    color: 'black',
+                    border: '2px solid rgba(0,0,0,0.2)',
                     '&:hover': { 
-                      bgcolor: 'rgba(255,255,255,0.3)',
-                      border: '2px solid rgba(255,255,255,0.5)'
+                      bgcolor: 'rgba(0,0,0,0.2)',
+                      border: '2px solid rgba(0,0,0,0.3)'
                     }
                   }}
                 >
@@ -502,7 +502,7 @@ const HomePage = () => {
                 </Button>
 
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                  <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)' }}>
                     Don't have an account?
                     <Button
                       variant="text"
@@ -511,7 +511,7 @@ const HomePage = () => {
                         setLoginError('')
                         setFormData({ email: '', password: '', name: '' })
                       }}
-                      sx={{ ml: 1, textTransform: 'none', fontWeight: 600, color: 'white' }}
+                      sx={{ ml: 1, textTransform: 'none', fontWeight: 600, color: 'black' }}
                     >
                       Sign up
                     </Button>
@@ -533,10 +533,10 @@ const HomePage = () => {
               justifyContent: 'center'
             }}>
               <Box sx={{ textAlign: 'center', mb: 4, maxWidth: 400, mx: 'auto', width: '100%' }}>
-                <Typography variant="h5" fontWeight={700} sx={{ mb: 1, color: 'white' }}>
+                <Typography variant="h5" fontWeight={700} sx={{ mb: 1, color: 'black' }}>
                   Create Account
                 </Typography>
-                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)' }}>
                   Join TallyCompass today
                 </Typography>
               </Box>
@@ -597,12 +597,12 @@ const HomePage = () => {
                   sx={{ 
                     mb: 3,
                     py: 2,
-                    bgcolor: 'rgba(255,255,255,0.2)',
-                    color: 'white',
-                    border: '2px solid rgba(255,255,255,0.3)',
+                    bgcolor: 'rgba(0,0,0,0.1)',
+                    color: 'black',
+                    border: '2px solid rgba(0,0,0,0.2)',
                     '&:hover': { 
-                      bgcolor: 'rgba(255,255,255,0.3)',
-                      border: '2px solid rgba(255,255,255,0.5)'
+                      bgcolor: 'rgba(0,0,0,0.2)',
+                      border: '2px solid rgba(0,0,0,0.3)'
                     }
                   }}
                 >
@@ -610,7 +610,7 @@ const HomePage = () => {
                 </Button>
 
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                  <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)' }}>
                     Already have an account?
                     <Button
                       variant="text"
@@ -619,7 +619,7 @@ const HomePage = () => {
                         setLoginError('')
                         setFormData({ email: '', password: '', name: '' })
                       }}
-                      sx={{ ml: 1, textTransform: 'none', fontWeight: 600, color: 'white' }}
+                      sx={{ ml: 1, textTransform: 'none', fontWeight: 600, color: 'black' }}
                     >
                       Sign in
                     </Button>
