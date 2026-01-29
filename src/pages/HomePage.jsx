@@ -12,6 +12,7 @@ const HomePage = () => {
   const { isAuthenticated, loading } = useSelector((state) => state.auth)
   const [isLogin, setIsLogin] = useState(true)
   const [loginError, setLoginError] = useState('')
+  const [showAuthPanel, setShowAuthPanel] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -110,24 +111,53 @@ const HomePage = () => {
       position: 'fixed',
       top: 0,
       left: 0,
-      overflow: 'hidden'
+      overflow: 'auto',
+      background: 'linear-gradient(135deg, #a0a0a3ff 0%, #aeadaeff 50%, #918e92ff 100%)',
+      '&::-webkit-scrollbar': {
+        width: '8px'
+      },
+      '&::-webkit-scrollbar-track': {
+        background: 'transparent'
+      },
+      '&::-webkit-scrollbar-thumb': {
+        backgroundColor: '#888',
+        borderRadius: '4px'
+      },
+      '&::-webkit-scrollbar-thumb:hover': {
+        backgroundColor: '#555'
+      }
     }}>
       {/* Left Side - Charts and Analytics */}
       <Box sx={{ 
-        flex: 2, 
-        bgcolor: '#f8f9fa', 
+        flex: showAuthPanel ? 2 : 1, 
+        background: 'rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(10px)',
         p: 2,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
         margin: 0,
-        height: '100vh',
-        overflow: 'auto',
-        pt: 1
+        minHeight: '100vh',
+        pt: 1,
+        transition: 'flex 0.3s ease-in-out, background 0.3s ease-in-out'
       }}>
-        <Typography variant="h5" fontWeight={700} sx={{ mb: 1, color: '#667eea', fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
-          TallyCompass
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="h5" fontWeight={700} sx={{ color: 'black', fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
+            TallyCompass
+          </Typography>
+          {!showAuthPanel && (
+            <Button 
+              variant="contained" 
+              onClick={() => setShowAuthPanel(true)}
+              sx={{ 
+                bgcolor: '#667eea',
+                '&:hover': { bgcolor: '#5a6fd8' }
+              }}
+            >
+              Login / Signup
+            </Button>
+          )}
+        </Box>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
           Voice of Customer Analytics Dashboard
         </Typography>
@@ -362,15 +392,20 @@ const HomePage = () => {
       </Box>
 
       {/* Right Side - Login/Signup Form */}
+      {showAuthPanel && (
       <Box sx={{ 
         flex: 1, 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'rgba(255, 255, 255, 0.05)',
+        backdropFilter: 'blur(15px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         p: 0,
         margin: 0,
-        height: '100vh'
+        height: '100vh',
+        position: 'sticky',
+        top: 0,
+        animation: 'slideIn 0.3s ease-in-out'
       }}>
         <Box sx={{ 
           position: 'relative',
@@ -595,6 +630,7 @@ const HomePage = () => {
           </Box>
         </Box>
       </Box>
+      )}
     </Box>
   )
 }
