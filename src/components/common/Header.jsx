@@ -52,15 +52,9 @@ const Header = () => {
     setAnchorEl(null)
   }
 
-  const handleLogout = async () => {
-    try {
-      await authService.logout()
-    } catch (error) {
-      console.error('Logout error:', error)
-    } finally {
-      dispatch(logout())
-      navigate('/login')
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    dispatch(logout())
     handleClose()
   }
 
