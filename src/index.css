@@ -23,3 +23,17 @@ html, body {
   margin: 0;
   padding: 0;
 }
+
+/* Ensure proper responsive behavior */
+@media (max-width: 768px) {
+  html, body {
+    font-size: 14px;
+  }
+}
+
+/* Prevent horizontal scrolling on mobile */
+@media (max-width: 480px) {
+  * {
+    max-width: 100%;
+  }
+}

@@ -4,8 +4,19 @@ import HomePage from './pages/HomePage'
 import AuthPage from './pages/auth/AuthPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import Dashboard from './pages/Dashboard'
-import ProfilePage from './pages/ProfilePage'
+import CustomersPage from './pages/customers/CustomersPage'
+import ProductsPage from './pages/products/ProductsPage'
+import FeedbackPage from './pages/feedback/FeedbackPage'
+import RequestsPage from './pages/requests/RequestsPage'
+import VocPage from './pages/voc/VocPage'
+import ProfilePage from './pages/profile/ProfilePage'
 import ProtectedRoute from './components/common/ProtectedRoute'
+import ConfirmDialog from './components/modals/ConfirmDialog'
+import DetailModal from './components/modals/DetailModal'
+import CustomerForm from './components/forms/CustomerForm'
+import ProductForm from './components/forms/ProductForm'
+import FeedbackForm from './components/forms/FeedbackForm'
+import VocForm from './components/forms/VocForm'
 import { Box, CircularProgress } from '@mui/material'
 import './App.css'
 
@@ -35,12 +46,6 @@ function App() {
         <Route 
           path="/reset-password" 
           element={<ResetPasswordPage />} 
-        />
-        
-        {/* Public Routes */}
-        <Route 
-          path="/home" 
-          element={<HomePage />} 
         />
         
         {/* Public Auth Routes */}
@@ -74,6 +79,46 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route 
+          path="/customers" 
+          element={
+            <ProtectedRoute>
+              <CustomersPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/products" 
+          element={
+            <ProtectedRoute>
+              <ProductsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/feedback" 
+          element={
+            <ProtectedRoute>
+              <FeedbackPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/requests" 
+          element={
+            <ProtectedRoute>
+              <RequestsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/voc" 
+          element={
+            <ProtectedRoute>
+              <VocPage />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* Default Route */}
         <Route 
@@ -87,6 +132,14 @@ function App() {
           element={<Navigate to="/" replace />} 
         />
       </Routes>
+      
+      {/* Global Modals */}
+      <ConfirmDialog />
+      <DetailModal />
+      <CustomerForm />
+      <ProductForm />
+      <FeedbackForm />
+      <VocForm />
     </Router>
   )
 }
