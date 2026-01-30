@@ -1,8 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import HomePage from './pages/HomePage'
 import AuthPage from './pages/auth/AuthPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import Dashboard from './pages/Dashboard'
+import ProfilePage from './pages/ProfilePage'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import { Box, CircularProgress } from '@mui/material'
 import './App.css'
@@ -35,6 +37,12 @@ function App() {
           element={<ResetPasswordPage />} 
         />
         
+        {/* Public Routes */}
+        <Route 
+          path="/home" 
+          element={<HomePage />} 
+        />
+        
         {/* Public Auth Routes */}
         <Route 
           path="/login" 
@@ -58,17 +66,25 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* Default Route */}
         <Route 
           path="/" 
-          element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} 
+          element={<HomePage />} 
         />
         
         {/* Catch-all route */}
         <Route 
           path="*" 
-          element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} 
+          element={<Navigate to="/" replace />} 
         />
       </Routes>
     </Router>
