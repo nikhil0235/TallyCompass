@@ -83,7 +83,7 @@ const HomePage = () => {
     dispatch(authStart())
     try {
       const userData = await authService.signup({
-        username: formData.name,
+        userName: formData.name,
         email: formData.email,
         password: formData.password
       })

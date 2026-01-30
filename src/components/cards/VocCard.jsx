@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { 
   Card, 
   CardContent, 
@@ -15,6 +16,11 @@ import {
 
 const VocCard = memo(({ voc }) => {
   const theme = useTheme()
+  const navigate = useNavigate()
+
+  const handleCardClick = () => {
+    navigate(`/voc/${voc._id}`, { state: { voc } })
+  }
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -65,6 +71,7 @@ const VocCard = memo(({ voc }) => {
 
   return (
     <Card 
+      onClick={handleCardClick}
       sx={{ 
         height: 'auto',
         minHeight: '180px',
@@ -76,6 +83,7 @@ const VocCard = memo(({ voc }) => {
         transition: 'all 0.2s ease',
         position: 'relative',
         overflow: 'hidden',
+        cursor: 'pointer',
         '&:hover': { 
           boxShadow: `0 8px 20px ${theme.palette.primary.main}20`,
           transform: 'translateY(-4px)',

@@ -9,6 +9,7 @@ import ProductsPage from './pages/products/ProductsPage'
 import FeedbackPage from './pages/feedback/FeedbackPage'
 import RequestsPage from './pages/requests/RequestsPage'
 import VocPage from './pages/voc/VocPage'
+import VocDetailPage from './pages/voc/VocDetailPage'
 import ProfilePage from './pages/profile/ProfilePage'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import ConfirmDialog from './components/modals/ConfirmDialog'
@@ -119,11 +120,19 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route 
+          path="/voc/:id" 
+          element={
+            <ProtectedRoute>
+              <VocDetailPage />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* Default Route */}
         <Route 
           path="/" 
-          element={<HomePage />} 
+          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <HomePage />} 
         />
         
         {/* Catch-all route */}

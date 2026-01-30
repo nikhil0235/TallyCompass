@@ -55,6 +55,8 @@ import {
   Lock as LockIcon,
   LockOpen as UnlockIcon,
   Add as AddIcon,
+  CloudUpload as CloudUploadIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material'
 import { closeModal } from '../../store/slices/uiSlice'
 import { createVocSuccess, updateVocSuccess, vocFailure } from '../../store/slices/vocSlice'
@@ -91,6 +93,7 @@ const steps = [
   { label: 'Customer', icon: <CustomerIcon />, description: 'Select & configure', color: 'warning' },
   { label: 'Requests', icon: <ProjectIcon />, description: 'Link requests', color: 'error' },
   { label: 'Feedback', icon: <FeedbackIcon />, description: 'Link feedback', color: 'success' },
+  { label: 'Media', icon: <MediaIcon />, description: 'Upload files', color: 'secondary' },
   { label: 'Review', icon: <CheckIcon />, description: 'Final summary', color: 'primary' }
 ]
 
@@ -327,8 +330,9 @@ const VocForm = () => {
   const [success, setSuccess] = useState(false)
   const [showRequestForm, setShowRequestForm] = useState(false)
   const [showFeedbackForm, setShowFeedbackForm] = useState(false)
-  const [newRequest, setNewRequest] = useState({ title: '', description: '', type: 'feature', priority: 'medium' })
+  const [newRequest, setNewRequest] = useState({ requestTitle: '', description: '', requestType: 'feature', priority: 'medium' })
   const [newFeedback, setNewFeedback] = useState({ feedbackText: '', rating: 5, medium: 'Email' })
+  const [uploadedFiles, setUploadedFiles] = useState([])
 
   const isOpen = modals?.vocForm
   const isEditMode = Boolean(modalData?._id)
@@ -801,8 +805,8 @@ const VocForm = () => {
                     <Grid item xs={12}>
                       <TextField
                         label="Request Title"
-                        value={newRequest.title}
-                        onChange={(e) => setNewRequest(prev => ({ ...prev, title: e.target.value }))}
+                        value={newRequest.requestTitle}
+                        onChange={(e) => setNewRequest(prev => ({ ...prev, requestTitle: e.target.value }))}
                         fullWidth
                         sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                       />
@@ -822,8 +826,8 @@ const VocForm = () => {
                       <TextField
                         label="Type"
                         select
-                        value={newRequest.type}
-                        onChange={(e) => setNewRequest(prev => ({ ...prev, type: e.target.value }))}
+                        value={newRequest.requestType}
+                        onChange={(e) => setNewRequest(prev => ({ ...prev, requestType: e.target.value }))}
                         fullWidth
                         sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
                       >
@@ -849,11 +853,27 @@ const VocForm = () => {
                     <Grid item xs={12}>
                       <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                         <Button onClick={() => setShowRequestForm(false)}>Cancel</Button>
-                        <Button variant="contained" onClick={() => {
-                          const newReq = { ...newRequest, _id: Date.now().toString() }
-                          setCustomerRequests(prev => [...prev, newReq])
-                          setNewRequest({ title: '', description: '', type: 'feature', priority: 'medium' })
-                          setShowRequestForm(false)
+                        <Button variant="contained" onClick={async () => {
+                          try {
+                            const requestData = {
+                              requestTitle: newRequest.requestTitle,
+                              description: newRequest.description,
+                              requestType: newRequest.requestType,
+                              priority: newRequest.priority,
+                              customterList: [formData.customerDetailsObj.customerID],
+                              action: {
+                                status: 'pending',
+                                description: 'Request created from VOC form'
+                              }
+                            }
+                            const createdRequest = await customerRequestService.create(requestData)
+                            setCustomerRequests(prev => [...prev, createdRequest])
+                            setNewRequest({ requestTitle: '', description: '', requestType: 'feature', priority: 'medium' })
+                            setShowRequestForm(false)
+                          } catch (error) {
+                            console.error('Failed to create request:', error)
+                            setError('Failed to create request. Please try again.')
+                          }
                         }}>Add Request</Button>
                       </Box>
                     </Grid>
@@ -988,11 +1008,23 @@ const VocForm = () => {
                     <Grid item xs={12}>
                       <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                         <Button onClick={() => setShowFeedbackForm(false)}>Cancel</Button>
-                        <Button variant="contained" onClick={() => {
-                          const newFb = { ...newFeedback, _id: Date.now().toString(), description: newFeedback.feedbackText }
-                          setFeedbacks(prev => [...prev, newFb])
-                          setNewFeedback({ feedbackText: '', rating: 5, medium: 'Email' })
-                          setShowFeedbackForm(false)
+                        <Button variant="contained" onClick={async () => {
+                          try {
+                            const feedbackData = {
+                              feedbackText: newFeedback.feedbackText,
+                              rating: newFeedback.rating,
+                              medium: newFeedback.medium,
+                              customerId: formData.customerDetailsObj.customerID,
+                              feedbackType: 'general'
+                            }
+                            const createdFeedback = await feedbackService.create(feedbackData)
+                            setFeedbacks(prev => [...prev, createdFeedback])
+                            setNewFeedback({ feedbackText: '', rating: 5, medium: 'Email' })
+                            setShowFeedbackForm(false)
+                          } catch (error) {
+                            console.error('Failed to create feedback:', error)
+                            setError('Failed to create feedback. Please try again.')
+                          }
                         }}>Add Feedback</Button>
                       </Box>
                     </Grid>
@@ -1033,10 +1065,161 @@ const VocForm = () => {
       case 4:
         return (
           <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: '12px',
+                    background: `linear-gradient(135deg, ${theme.palette.secondary.main}, ${theme.palette.primary.main})`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white'
+                  }}>
+                    <MediaIcon />
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      Media Upload
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                      Upload documents, images, or other files
+                    </Typography>
+                  </Box>
+                </Box>
+                <Chip
+                  label={`${uploadedFiles.length} Files`}
+                  sx={{
+                    background: `linear-gradient(135deg, ${theme.palette.secondary.main}, ${theme.palette.primary.main})`,
+                    color: 'white',
+                    fontWeight: 700,
+                    fontSize: '0.85rem'
+                  }}
+                />
+              </Box>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Card sx={{ p: 3, borderRadius: '12px', border: `2px dashed ${theme.palette.secondary.main}` }}>
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <input
+                    type="file"
+                    multiple
+                    accept="*/*"
+                    style={{ display: 'none' }}
+                    id="file-upload"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files)
+                      const newFiles = files.map(file => ({
+                        id: Date.now() + Math.random(),
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        file: file
+                      }))
+                      setUploadedFiles(prev => [...prev, ...newFiles])
+                      setFormData(prev => ({
+                        ...prev,
+                        mediaList: [...prev.mediaList, ...newFiles.map(f => ({ fileName: f.name, fileSize: f.size, fileType: f.type }))]
+                      }))
+                    }}
+                  />
+                  <label htmlFor="file-upload">
+                    <Button
+                      variant="outlined"
+                      component="span"
+                      startIcon={<CloudUploadIcon />}
+                      sx={{
+                        borderRadius: '12px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        py: 2,
+                        px: 4,
+                        fontSize: '1.1rem',
+                        border: `2px solid ${theme.palette.secondary.main}`,
+                        '&:hover': {
+                          background: `${theme.palette.secondary.main}10`,
+                          transform: 'translateY(-2px)'
+                        }
+                      }}
+                    >
+                      Choose Files to Upload
+                    </Button>
+                  </label>
+                  <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
+                    Drag and drop files here or click to browse
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    Supports all file types • Max 10MB per file
+                  </Typography>
+                </Box>
+              </Card>
+            </Grid>
+
+            {uploadedFiles.length > 0 && (
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                  Uploaded Files ({uploadedFiles.length})
+                </Typography>
+                <Grid container spacing={2}>
+                  {uploadedFiles.map((file) => (
+                    <Grid item xs={12} sm={6} md={4} key={file.id}>
+                      <Card sx={{ 
+                        p: 2, 
+                        borderRadius: '8px',
+                        border: `1px solid ${theme.palette.divider}`,
+                        '&:hover': {
+                          boxShadow: `0 4px 12px ${theme.palette.secondary.main}25`
+                        }
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <FileIcon sx={{ color: theme.palette.secondary.main }} />
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="subtitle2" sx={{ 
+                              fontWeight: 600, 
+                              fontSize: '0.9rem',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {file.name}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                            </Typography>
+                          </Box>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              setUploadedFiles(prev => prev.filter(f => f.id !== file.id))
+                              setFormData(prev => ({
+                                ...prev,
+                                mediaList: prev.mediaList.filter(m => m.fileName !== file.name)
+                              }))
+                            }}
+                            sx={{ minWidth: 'auto', p: 0.5 }}
+                          >
+                            <DeleteIcon sx={{ fontSize: 18, color: theme.palette.error.main }} />
+                          </Button>
+                        </Box>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Grid>
+            )}
+          </Grid>
+        )
+
+      case 5:
+        return (
+          <Grid container spacing={3}>
             {/* Stats Row */}
             <Grid item xs={12}>
               <Grid container spacing={2}>
-                <Grid item xs={6} sm={3}>
+                <Grid item xs={6} sm={2.4}>
                   <StatBox
                     icon={ProjectIcon}
                     label="Requests"
@@ -1044,7 +1227,7 @@ const VocForm = () => {
                     color={theme.palette.error.main}
                   />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item xs={6} sm={2.4}>
                   <StatBox
                     icon={FeedbackIcon}
                     label="Feedback"
@@ -1052,7 +1235,15 @@ const VocForm = () => {
                     color={theme.palette.success.main}
                   />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item xs={6} sm={2.4}>
+                  <StatBox
+                    icon={MediaIcon}
+                    label="Files"
+                    value={uploadedFiles.length}
+                    color={theme.palette.secondary.main}
+                  />
+                </Grid>
+                <Grid item xs={6} sm={2.4}>
                   <StatBox
                     icon={CalendarIcon}
                     label="Duration"
@@ -1060,11 +1251,11 @@ const VocForm = () => {
                     color={theme.palette.info.main}
                   />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item xs={6} sm={2.4}>
                   <StatBox
                     icon={TrendingIcon}
                     label="Total Items"
-                    value={selectedRequestCount + selectedFeedbackCount}
+                    value={selectedRequestCount + selectedFeedbackCount + uploadedFiles.length}
                     color={theme.palette.primary.main}
                   />
                 </Grid>
@@ -1151,7 +1342,7 @@ const VocForm = () => {
                   <Divider sx={{ mb: 2 }} />
                   
                   <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12} sm={4}>
                       <Box sx={{ p: 2, borderRadius: '10px', background: `${theme.palette.error.main}10` }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: theme.palette.error.main }}>
                           Customer Requests
@@ -1177,7 +1368,7 @@ const VocForm = () => {
                         </Box>
                       </Box>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12} sm={4}>
                       <Box sx={{ p: 2, borderRadius: '10px', background: `${theme.palette.success.main}10` }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: theme.palette.success.main }}>
                           Customer Feedback
@@ -1208,6 +1399,29 @@ const VocForm = () => {
                         </Box>
                       </Box>
                     </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Box sx={{ p: 2, borderRadius: '10px', background: `${theme.palette.secondary.main}10` }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: theme.palette.secondary.main }}>
+                          Media Files
+                        </Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+                          {uploadedFiles.length}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {uploadedFiles.slice(0, 3).map((file) => (
+                            <Chip
+                              key={file.id}
+                              label={file.name.substring(0, 15) + (file.name.length > 15 ? '...' : '')}
+                              size="small"
+                              sx={{ height: '24px', fontSize: '0.7rem' }}
+                            />
+                          ))}
+                          {uploadedFiles.length > 3 && (
+                            <Chip label={`+${uploadedFiles.length - 3} more`} size="small" sx={{ height: '24px', fontSize: '0.7rem' }} />
+                          )}
+                        </Box>
+                      </Box>
+                    </Grid>
                   </Grid>
                 </CardContent>
               </Card>
@@ -1231,6 +1445,7 @@ const VocForm = () => {
       case 2:
       case 3:
       case 4:
+      case 5:
         return true
       default:
         return false

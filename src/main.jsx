@@ -11,33 +11,11 @@ const AppWithAuth = () => {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    // Check for existing token and initialize auth state
     const token = localStorage.getItem('token')
-    if (token) {
-      // If token exists, try to get current user
-      import('./services/authService').then(({ default: authService }) => {
-        authService.getCurrentUser()
-          .then(user => {
-            dispatch(initializeAuth({ 
-              isAuthenticated: true, 
-              user 
-            }))
-          })
-          .catch(() => {
-            // Token is invalid, clear it
-            localStorage.removeItem('token')
-            dispatch(initializeAuth({ 
-              isAuthenticated: false, 
-              user: null 
-            }))
-          })
-      })
-    } else {
-      dispatch(initializeAuth({ 
-        isAuthenticated: false, 
-        user: null 
-      }))
-    }
+    dispatch(initializeAuth({ 
+      isAuthenticated: !!token, 
+      user: null 
+    }))
   }, [dispatch])
 
   return <App />
