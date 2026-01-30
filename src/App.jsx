@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import HomePage from './pages/HomePage'
 import AuthPage from './pages/auth/AuthPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
-import Dashboard from './pages/Dashboard'
+import DashboardPage from './pages/dashboard/DashboardPage'
 import CustomersPage from './pages/customers/CustomersPage'
 import ProductsPage from './pages/products/ProductsPage'
 import FeedbackPage from './pages/feedback/FeedbackPage'
@@ -68,7 +68,7 @@ function App() {
           path="/dashboard" 
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <DashboardPage />
             </ProtectedRoute>
           } 
         />

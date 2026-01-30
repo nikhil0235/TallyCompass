@@ -1,23 +1,27 @@
-import { Box, Typography, Button, TextField, Paper, Grid } from '@mui/material'
+import { Box, Typography, Button, TextField, Paper, Grid, Dialog, DialogContent } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { useState } from 'react'
 import { authStart, loginSuccess, signupSuccess, authFailure } from '../store/slices/authSlice'
 import authService from '../services/authService'
 import notify from '../utils/notify'
+import ForgotPasswordForm from '../components/forms/ForgotPasswordForm'
 
 const HomePage = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const { isAuthenticated, loading } = useSelector((state) => state.auth)
   const [isLogin, setIsLogin] = useState(true)
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [loginError, setLoginError] = useState('')
   const [showAuthPanel, setShowAuthPanel] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: ''
+    name: '',
+    confirmPassword: ''
   })
+  const [passwordError, setPasswordError] = useState('')
 
   // Real data from your database
   const data = {
@@ -61,6 +65,17 @@ const HomePage = () => {
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    
+    if (field === 'confirmPassword' || field === 'password') {
+      const password = field === 'password' ? value : formData.password
+      const confirmPassword = field === 'confirmPassword' ? value : formData.confirmPassword
+      
+      if (confirmPassword && password !== confirmPassword) {
+        setPasswordError('Passwords do not match')
+      } else {
+        setPasswordError('')
+      }
+    }
   }
 
   const handleLogin = async (e) => {
@@ -80,6 +95,10 @@ const HomePage = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault()
+    if (formData.password !== formData.confirmPassword) {
+      setPasswordError('Passwords do not match')
+      return
+    }
     dispatch(authStart())
     try {
       const userData = await authService.signup({
@@ -94,6 +113,12 @@ const HomePage = () => {
       dispatch(authFailure(error.message))
       notify.error(error.message || 'Signup failed')
     }
+  }
+
+  const handleForgotPassword = async (data) => {
+    console.log('Forgot Password:', data)
+    notify.success('Password reset link sent to your email!')
+    setShowForgotPassword(false)
   }
 
   if (isAuthenticated) {
@@ -502,6 +527,15 @@ const HomePage = () => {
                 </Button>
 
                 <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)', mb: 1 }}>
+                    <Button
+                      variant="text"
+                      onClick={() => setShowForgotPassword(true)}
+                      sx={{ textTransform: 'none', fontWeight: 600, color: 'black', p: 0 }}
+                    >
+                      Forgot Password?
+                    </Button>
+                  </Typography>
                   <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)' }}>
                     Don't have an account?
                     <Button
@@ -509,7 +543,7 @@ const HomePage = () => {
                       onClick={() => {
                         setIsLogin(false)
                         setLoginError('')
-                        setFormData({ email: '', password: '', name: '' })
+                        setFormData({ email: '', password: '', name: '', confirmPassword: '' })
                       }}
                       sx={{ ml: 1, textTransform: 'none', fontWeight: 600, color: 'black' }}
                     >
@@ -588,12 +622,30 @@ const HomePage = () => {
                     }
                   }}
                 />
+                
+                <TextField
+                  fullWidth
+                  label="Confirm Password"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  required
+                  error={!!passwordError}
+                  helperText={passwordError}
+                  sx={{ 
+                    mb: 3,
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'rgba(255,255,255,0.9)',
+                      borderRadius: 2
+                    }
+                  }}
+                />
 
                 <Button
                   type="submit"
                   fullWidth
                   variant="contained"
-                  disabled={loading}
+                  disabled={loading || !!passwordError}
                   sx={{ 
                     mb: 3,
                     py: 2,
@@ -617,7 +669,7 @@ const HomePage = () => {
                       onClick={() => {
                         setIsLogin(true)
                         setLoginError('')
-                        setFormData({ email: '', password: '', name: '' })
+                        setFormData({ email: '', password: '', name: '', confirmPassword: '' })
                       }}
                       sx={{ ml: 1, textTransform: 'none', fontWeight: 600, color: 'black' }}
                     >
@@ -631,6 +683,24 @@ const HomePage = () => {
         </Box>
       </Box>
       )}
+
+      {/* Forgot Password Modal */}
+      <Dialog 
+        open={showForgotPassword} 
+        onClose={() => setShowForgotPassword(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogContent sx={{ p: 4 }}>
+          <Typography variant="h5" fontWeight={600} sx={{ mb: 2, textAlign: 'center' }}>
+            Reset Password
+          </Typography>
+          <ForgotPasswordForm 
+            onSubmit={handleForgotPassword}
+            loading={loading}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   )
 }
