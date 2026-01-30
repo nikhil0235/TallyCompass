@@ -52,9 +52,9 @@ const NotificationPanel = () => {
       await notificationService.markAsRead(notification.id)
     }
     
-    // Redirect to /customers for 'New Feedback Assigned' notification
-    if (notification.title === 'New Feedback Assigned') {
-      navigate('/customers');
+    // If it's a Feedback notification, go to /feedback/:id
+    if (notification.resourceModel === 'Feedback' && notification.resourceId) {
+      navigate(`/feedback/${notification.resourceId}`);
     } else if (notification.link) {
       navigate(notification.link);
       // If it's a VOC notification with vocId, open the specific VOC detail

@@ -105,6 +105,14 @@ function App() {
           } 
         />
         <Route 
+          path="/feedback/:id" 
+          element={
+            <ProtectedRoute>
+              <FeedbackPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
           path="/requests" 
           element={
             <ProtectedRoute>
