@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import {
   Grid,
   Typography,
   Box,
   Paper,
-  Stack
+  Tabs,
+  Tab
 } from '@mui/material'
 import {
   BarChart,
@@ -23,6 +25,9 @@ import {
   LabelList
 } from 'recharts'
 import Layout from '../../components/common/Layout'
+import LoginForm from '../../components/forms/LoginForm'
+import SignupForm from '../../components/forms/SignupForm'
+import ForgotPasswordForm from '../../components/forms/ForgotPasswordForm'
 
 const metrics = [
   { title: 'Total Feedback', value: '12,450', sub: '+5.2% this month' },
@@ -62,9 +67,37 @@ const responseTrend = [
 const COLORS = ['#2563eb', '#22c55e', '#facc15', '#fb923c']
 
 const DashboardPage = () => {
+  const [activeTab, setActiveTab] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(false)
+
+  const handleLogin = (data) => {
+    setLoading(true)
+    console.log('Login:', data)
+    setTimeout(() => setLoading(false), 1000)
+  }
+
+  const handleSignup = (data) => {
+    setLoading(true)
+    console.log('Signup:', data)
+    setTimeout(() => setLoading(false), 1000)
+  }
+
+  const handleForgotPassword = (data) => {
+    setLoading(true)
+    console.log('Forgot Password:', data)
+    setTimeout(() => {
+      setLoading(false)
+      setSuccess(true)
+    }, 1000)
+  }
+
   return (
     <Layout>
-      <Box sx={{ minHeight: '100vh', backgroundColor: '#f8fafc', p: 4 }}>
+      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+        {/* Left Panel - Dashboard Content */}
+        <Box sx={{ flex: 1, backgroundColor: '#f8fafc', p: 4, overflow: 'auto' }}>
 
         {/* Metric Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -213,6 +246,61 @@ const DashboardPage = () => {
             </Paper>
           </Grid>
         </Grid>
+
+        </Box>
+
+        {/* Right Panel - Authentication */}
+        <Box sx={{ 
+          width: 400, 
+          backgroundColor: 'white', 
+          borderLeft: '1px solid #e5e7eb',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          <Box sx={{ p: 3, borderBottom: '1px solid #e5e7eb' }}>
+            <Typography variant="h5" fontWeight={600} textAlign="center">
+              Welcome to TallyCompass
+            </Typography>
+          </Box>
+
+          <Box sx={{ p: 3 }}>
+            <Tabs 
+              value={activeTab} 
+              onChange={(e, v) => setActiveTab(v)}
+              variant="fullWidth"
+              sx={{ mb: 3 }}
+            >
+              <Tab label="Login" />
+              <Tab label="Sign Up" />
+              <Tab label="Forgot Password" />
+            </Tabs>
+
+            {activeTab === 0 && (
+              <LoginForm 
+                onSubmit={handleLogin}
+                loading={loading}
+                onForgotPassword={() => setActiveTab(2)}
+              />
+            )}
+
+            {activeTab === 1 && (
+              <SignupForm 
+                onSubmit={handleSignup}
+                loading={loading}
+                error={error}
+              />
+            )}
+
+            {activeTab === 2 && (
+              <ForgotPasswordForm 
+                onSubmit={handleForgotPassword}
+                loading={loading}
+                error={error}
+                success={success}
+              />
+            )}
+          </Box>
+        </Box>
 
       </Box>
     </Layout>

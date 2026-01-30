@@ -1,6 +1,7 @@
 import Form from '../common/Form'
+import { Link, Typography } from '@mui/material'
 
-const LoginForm = ({ onSubmit, loading = false }) => {
+const LoginForm = ({ onSubmit, loading = false, onForgotPassword }) => {
   const loginFields = [
     { 
       name: 'email', 
@@ -17,13 +18,30 @@ const LoginForm = ({ onSubmit, loading = false }) => {
   ]
 
   return (
-    <Form
-      fields={loginFields}
-      onSubmit={onSubmit}
-      loading={loading}
-      submitText="Sign In"
-      loadingText="Signing in..."
-    />
+    <>
+      <Form
+        fields={loginFields}
+        onSubmit={onSubmit}
+        loading={loading}
+        submitText="Sign In"
+        loadingText="Signing in..."
+      />
+      {onForgotPassword && (
+        <Typography 
+          variant="body2" 
+          sx={{ mt: 2, textAlign: 'center' }}
+        >
+          <Link 
+            component="button" 
+            variant="body2" 
+            onClick={onForgotPassword}
+            sx={{ cursor: 'pointer' }}
+          >
+            Forgot Password?
+          </Link>
+        </Typography>
+      )}
+    </>
   )
 }
 
