@@ -338,7 +338,7 @@ const VocDetailPage = () => {
                           }
                         />
                       </ListItem>
-                    ))}}
+                    ))}
                   </List>
                 </CardContent>
               </Card>

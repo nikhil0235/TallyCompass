@@ -11,8 +11,13 @@ const notificationSlice = createSlice({
   initialState,
   reducers: {
     setNotifications: (state, action) => {
-      state.notifications = action.payload
-      state.unreadCount = action.payload.filter(n => !n.read).length
+      const notifications = Array.isArray(action.payload)
+        ? action.payload
+        : (action.payload && Array.isArray(action.payload.notifications))
+          ? action.payload.notifications
+          : []
+      state.notifications = notifications
+      state.unreadCount = notifications.filter(n => !n.read).length
     },
     addNotification: (state, action) => {
       state.notifications.unshift(action.payload)

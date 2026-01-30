@@ -225,7 +225,7 @@ const FeedbackPage = () => {
           </Stack>
 
           <Grid container spacing={2} alignItems="flex-end">
-            <Grid item xs={12} sm={6} md={5}>
+            <Grid>
               <TextField
                 fullWidth
                 size="small"
@@ -245,7 +245,7 @@ const FeedbackPage = () => {
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={2.5}>
+            <Grid>
               <FormControl fullWidth size="small">
                 <InputLabel>Medium</InputLabel>
                 <Select
