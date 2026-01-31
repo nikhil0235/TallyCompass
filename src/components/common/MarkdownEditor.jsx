@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import getCaretCoordinates from 'textarea-caret';
 import { Box, Typography, IconButton, Dialog, DialogContent, DialogTitle, List, ListItemButton, ListItemText, Paper, Avatar, Divider } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useSelector, useDispatch } from 'react-redux'
@@ -29,6 +30,7 @@ const MarkdownEditor = ({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showMentions, setShowMentions] = useState(false)
   const [mentionQuery, setMentionQuery] = useState('')
+  const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 })
   const editorRef = useRef(null)
 
   useEffect(() => {
@@ -70,6 +72,28 @@ const MarkdownEditor = ({
       if (afterAt === '' || /^[a-zA-Z]*$/.test(afterAt)) {
         setShowMentions(true)
         setMentionQuery(afterAt)
+        // Calculate caret position for dropdown
+        setTimeout(() => {
+          if (editorRef.current) {
+            const iframe = editorRef.current.iframeElement || editorRef.current.getDoc()?.defaultView?.frameElement;
+            if (iframe) {
+              const win = iframe.contentWindow;
+              const sel = win.getSelection();
+              if (sel && sel.rangeCount > 0) {
+                const range = sel.getRangeAt(0).cloneRange();
+                const rect = range.getClientRects()[0];
+                if (rect) {
+                  // Get iframe position relative to page
+                  const iframeRect = iframe.getBoundingClientRect();
+                  setMentionPosition({
+                    top: rect.bottom + iframeRect.top + window.scrollY,
+                    left: rect.left + iframeRect.left + window.scrollX
+                  });
+                }
+              }
+            }
+          }
+        }, 0);
       } else {
         setShowMentions(false)
       }
@@ -164,14 +188,15 @@ const MarkdownEditor = ({
         <Paper
           elevation={8}
           sx={{
-            position: 'absolute',
-            top: '-4.5px',
-            right: '0px',
+            position: 'fixed',
+            top: `${mentionPosition.top}px`,
+            left: `${mentionPosition.left}px`,
             width: 250,
             maxHeight: 200,
             overflow: 'auto',
-            zIndex: 1001,
-            border: `2px solid ${theme.palette.primary.main}`
+            zIndex: 1300,
+            border: `2px solid ${theme.palette.primary.main}`,
+            boxShadow: 8
           }}
         >
           <List sx={{ py: 0 }}>

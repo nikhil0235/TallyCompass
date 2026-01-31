@@ -56,7 +56,6 @@ import {
 } from '@mui/icons-material'
 import Layout from '../../components/common/Layout'
 import vocService from '../../services/vocService'
-import MarkdownPreview from '@uiw/react-markdown-preview'
 
 const VocDetailPage = () => {
   const navigate = useNavigate()
@@ -325,23 +324,17 @@ const VocDetailPage = () => {
                 </Typography>
               </Box>
 
-              <Box
+              <Typography
+                variant="body2"
+                color="text.secondary"
                 sx={{
                   lineHeight: 1.6,
                   maxWidth: '700px',
-                  mb: 1.5,
-                  '& .wmde-markdown': {
-                    backgroundColor: 'transparent !important',
-                    color: theme.palette.text.secondary
-                  }
+                  mb: 1.5
                 }}
               >
-                <MarkdownPreview 
-                  source={voc.description || 'No description available'} 
-                  style={{ backgroundColor: 'transparent', fontSize: '0.875rem' }}
-                  data-color-mode={theme.palette.mode}
-                />
-              </Box>
+                {voc.description || 'No description available'}
+              </Typography>
               
               <Typography variant="caption" color="text.secondary">
                 Last updated: {formatDate(voc.updatedAt)}
@@ -451,13 +444,9 @@ const VocDetailPage = () => {
                     <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.9rem', mb: 1 }}>
                       Project Details
                     </Typography>
-                    <Box sx={{ mb: 2, lineHeight: 1.4, fontSize: '0.85rem' }}>
-                      <MarkdownPreview 
-                        source={voc.description || 'No description available'} 
-                        style={{ backgroundColor: 'transparent', fontSize: '0.85rem' }}
-                        data-color-mode={theme.palette.mode}
-                      />
-                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.4, fontSize: '0.85rem' }}>
+                      {voc.description || 'No description available'}
+                    </Typography>
                     <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                       <TimelineItem
                         icon={<CalendarIcon />}
