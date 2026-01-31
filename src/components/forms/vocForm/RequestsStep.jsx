@@ -11,6 +11,7 @@ import {
   ExpandMore as ExpandIcon
 } from '@mui/icons-material'
 import { useState, useCallback, useMemo, memo, useEffect } from 'react'
+import MarkdownEditor from '../../common/MarkdownEditor'
 
 const REQUEST_TYPES = [
   { value: 'feature', label: 'Feature Request' },
@@ -885,36 +886,14 @@ const RequestsStep = ({
                       Detailed Description
                     </Typography>
                   </Box>
-                  <TextField
+                  <MarkdownEditor
                     value={newRequest.description || ''}
-                    onChange={(e) => setNewRequest(prev => ({ ...prev, description: e.target.value }))}
-                    fullWidth
-                    multiline
-                    rows={4}
+                    onChange={(value) => setNewRequest(prev => ({ ...prev, description: value }))}
+                    placeholder="Describe the request in detail..."
+                    disabled={isSubmitting}
+                    height={250}
                     error={!!validationErrors.description}
                     helperText={validationErrors.description}
-                    placeholder="Describe the request in detail, including expected behavior and impact..."
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '12px',
-                        fontSize: '0.95rem',
-                        background: 'rgba(255,255,255,0.6)',
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                        border: `1.5px solid ${theme.palette.grey[300]}`,
-                        minHeight: '120px',
-                        '&:hover': {
-                          background: 'white',
-                          borderColor: theme.palette.primary.light,
-                          boxShadow: `0 4px 12px ${theme.palette.primary.main}10`
-                        },
-                        '&.Mui-focused': {
-                          boxShadow: `0 8px 24px ${theme.palette.primary.main}25`,
-                          background: 'white',
-                          borderColor: theme.palette.primary.main
-                        }
-                      },
-                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' }
-                    }}
                   />
                 </Box>
 

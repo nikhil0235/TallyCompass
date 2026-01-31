@@ -24,6 +24,23 @@ html, body {
   padding: 0;
 }
 
+/* Hide preview panel completely */
+.md-editor-preview,
+.md-editor .md-editor-preview {
+  display: none !important;
+  width: 0 !important;
+}
+
+/* Force editor to full width */
+.md-editor-text {
+  width: 100% !important;
+  flex: 1 !important;
+}
+
+.md-editor {
+  background-color: white !important;
+}
+
 /* Ensure proper responsive behavior */
 @media (max-width: 768px) {
   html, body {

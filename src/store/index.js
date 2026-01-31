@@ -8,6 +8,7 @@ import dashboardReducer from './slices/dashboardSlice'
 import notificationReducer from './slices/notificationSlice'
 import requestReducer from './slices/requestSlice'
 import profileReducer from './slices/profileSlice'
+import userListReducer from './slices/userListSlice'
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
     notification: notificationReducer,
     requests: requestReducer,
     profile: profileReducer,
+    userList: userListReducer,
   },
 })
 

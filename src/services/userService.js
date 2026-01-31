@@ -23,7 +23,14 @@ class UserService {
   }
 
   async getAll() {
-    return apiService.get('/api/users', { requiresAuth: true })
+    console.log('Calling API: /api/users/get-all-userr')
+    const response = await apiService.get('/api/users/get-all-userr', { requiresAuth: true })
+    console.log('API Response:', response)
+    return response
+  }
+
+  async sendAttachedUsers(attachedUsers) {
+    return apiService.post('/api/users/attached', { attachedUsers }, { requiresAuth: true })
   }
 }
 
