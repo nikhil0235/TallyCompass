@@ -79,11 +79,7 @@ const RequestCard = memo(({
           border: `2px solid ${theme.palette.primary.main}40`,
         }
       }}
-      onClick={() => {
-        if (request && request._id) {
-          navigate(`/requests/${request._id}`)
-        }
-      }}
+      onClick={() => navigate(`/requests/${request.id || request._id}`)}
     >
       <CardContent sx={{ flexGrow: 1, p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
         {/* Header with Title */}
