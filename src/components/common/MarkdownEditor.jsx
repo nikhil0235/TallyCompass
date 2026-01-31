@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import getCaretCoordinates from 'textarea-caret';
 import { Box, Typography, IconButton, Dialog, DialogContent, DialogTitle, List, ListItemButton, ListItemText, Paper, Avatar, Divider } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -31,7 +31,12 @@ const MarkdownEditor = ({
   const [showMentions, setShowMentions] = useState(false)
   const [mentionQuery, setMentionQuery] = useState('')
   const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 })
+  const editorBoxRef = useRef(null)
+  const [highlightedIndex, setHighlightedIndex] = useState(0)
+  const mentionPositionLocked = useRef(false)
   const editorRef = useRef(null)
+  const mentionListRef = useRef(null)
+  const mentionDropdownRef = useRef(null)
 
   useEffect(() => {
     console.log('Redux state changed:', { reduxUsers, length: reduxUsers?.length })
@@ -61,73 +66,189 @@ const MarkdownEditor = ({
 
   const handleEditorChange = (content) => {
     onChange(content)
-    
     // Get plain text content without HTML tags
     const plainText = content.replace(/<[^>]*>/g, '')
     const lastAtIndex = plainText.lastIndexOf('@')
-    
     if (lastAtIndex !== -1) {
       const afterAt = plainText.substring(lastAtIndex + 1)
       // Show mentions if @ is at end or followed by letters only
       if (afterAt === '' || /^[a-zA-Z]*$/.test(afterAt)) {
         setShowMentions(true)
         setMentionQuery(afterAt)
-        // Calculate caret position for dropdown
-        setTimeout(() => {
-          if (editorRef.current) {
-            const iframe = editorRef.current.iframeElement || editorRef.current.getDoc()?.defaultView?.frameElement;
-            if (iframe) {
-              const win = iframe.contentWindow;
-              const sel = win.getSelection();
-              if (sel && sel.rangeCount > 0) {
-                const range = sel.getRangeAt(0).cloneRange();
-                const rect = range.getClientRects()[0];
-                if (rect) {
-                  // Get iframe position relative to page
-                  const iframeRect = iframe.getBoundingClientRect();
-                  setMentionPosition({
-                    top: rect.bottom + iframeRect.top + window.scrollY,
-                    left: rect.left + iframeRect.left + window.scrollX
-                  });
+        setHighlightedIndex(0)
+        // Only set position if not already locked
+        if (!mentionPositionLocked.current) {
+          setTimeout(() => {
+            if (editorRef.current && editorBoxRef.current) {
+              const iframe = editorRef.current.iframeElement || editorRef.current.getDoc()?.defaultView?.frameElement;
+              if (iframe) {
+                const win = iframe.contentWindow;
+                const sel = win.getSelection();
+                if (sel && sel.rangeCount > 0) {
+                  const range = sel.getRangeAt(0).cloneRange();
+                  const rect = range.getClientRects()[0];
+                  if (rect) {
+                    // Get iframe and editor box position relative to page
+                    const iframeRect = iframe.getBoundingClientRect();
+                    const editorBoxRect = editorBoxRef.current.getBoundingClientRect();
+                    // Calculate dropdown position relative to editor box
+                    let top = rect.bottom + iframeRect.top - editorBoxRect.top;
+                    let left = rect.left + iframeRect.left - editorBoxRect.left;
+                    // Prevent overflow from editor box
+                    const dropdownWidth = 250;
+                    const dropdownHeight = 200;
+                    if (left + dropdownWidth > editorBoxRect.width) {
+                      left = editorBoxRect.width - dropdownWidth - 8;
+                    }
+                    if (top + dropdownHeight > editorBoxRect.height) {
+                      top = editorBoxRect.height - dropdownHeight - 8;
+                    }
+                    setMentionPosition({ top, left });
+                    mentionPositionLocked.current = true;
+                  }
                 }
               }
             }
-          }
-        }, 0);
+          }, 0);
+        }
       } else {
         setShowMentions(false)
+        mentionPositionLocked.current = false;
       }
     } else {
       setShowMentions(false)
+      mentionPositionLocked.current = false;
     }
   }
 
-  const insertMention = (user) => {
+  const insertMention = useCallback((user) => {
     if (!editorRef.current) return
-    
     try {
-      const content = editorRef.current.getContent()
-      const plainText = content.replace(/<[^>]*>/g, '')
-      const lastAtIndex = plainText.lastIndexOf('@')
-      
+      const editor = editorRef.current;
+      const content = editor.getContent();
+      const plainText = content.replace(/<[^>]*>/g, '');
+      const lastAtIndex = plainText.lastIndexOf('@');
       if (lastAtIndex !== -1) {
-        const beforeAt = plainText.substring(0, lastAtIndex)
-        const afterAt = plainText.substring(lastAtIndex + 1)
-        const afterMention = afterAt.replace(/^[a-zA-Z]*/, '')
-        
-        const newContent = `${beforeAt}@${user.userName}${afterMention}`
-        editorRef.current.setContent(newContent)
-        onChange(newContent)
+        const beforeAt = plainText.substring(0, lastAtIndex);
+        const afterAt = plainText.substring(lastAtIndex + 1);
+        const afterMention = afterAt.replace(/^[a-zA-Z]*/, '');
+        const mentionText = `@${user.userName}`;
+        const newContent = `${beforeAt}${mentionText} ${afterMention}`;
+        editor.setContent(newContent);
+        onChange(newContent);
+        // Move cursor after the inserted mention and space, even with multiple mentions
+        setTimeout(() => {
+          const doc = editor.getDoc();
+          const body = editor.getBody();
+          // Find the last occurrence of the mentionText + ' '
+          const searchText = `${mentionText} `;
+          let charCount = 0;
+          let targetStart = -1;
+          function findLastMention(node) {
+            if (node.nodeType === 3) { // text node
+              let idx = -1;
+              let searchFrom = 0;
+              while ((idx = node.data.indexOf(searchText, searchFrom)) !== -1) {
+                targetStart = charCount + idx + searchText.length;
+                searchFrom = idx + 1;
+              }
+              charCount += node.data.length;
+            } else if (node.nodeType === 1 && node.childNodes) {
+              for (let i = 0; i < node.childNodes.length; i++) {
+                findLastMention(node.childNodes[i]);
+              }
+            }
+          }
+          findLastMention(body);
+          if (targetStart !== -1) {
+            // Set the cursor at the end of the last inserted mention
+            let currCount = 0;
+            let found = false;
+            function setCursor(node) {
+              if (found) return;
+              if (node.nodeType === 3) {
+                if (currCount + node.length >= targetStart) {
+                  const range = doc.createRange();
+                  range.setStart(node, targetStart - currCount);
+                  range.collapse(true);
+                  editor.selection.setRng(range);
+                  found = true;
+                }
+                currCount += node.length;
+              } else if (node.nodeType === 1 && node.childNodes) {
+                for (let i = 0; i < node.childNodes.length; i++) {
+                  setCursor(node.childNodes[i]);
+                  if (found) break;
+                }
+              }
+            }
+            setCursor(body);
+          }
+        }, 0);
       }
     } catch (err) {
       console.error('Error inserting mention:', err)
     }
-    
-    setShowMentions(false)
-  }
+    setShowMentions(false);
+    mentionPositionLocked.current = false;
+    setHighlightedIndex(0);
+  }, [onChange]);
+
+  // Keyboard navigation and outside click/blur handling
+  useEffect(() => {
+    if (!showMentions) return;
+    // Keyboard handler
+    const handleKeyDown = (e) => {
+      if (!showMentions || filteredUsers.length === 0) return;
+      if (["ArrowDown", "ArrowUp", "Enter", "Escape"].includes(e.key)) {
+        e.preventDefault();
+        if (e.key === "ArrowDown") {
+          setHighlightedIndex((prev) => (prev + 1) % filteredUsers.length);
+        } else if (e.key === "ArrowUp") {
+          setHighlightedIndex((prev) => (prev - 1 + filteredUsers.length) % filteredUsers.length);
+        } else if (e.key === "Enter") {
+          insertMention(filteredUsers[highlightedIndex]);
+        } else if (e.key === "Escape") {
+          setShowMentions(false);
+          mentionPositionLocked.current = false;
+        }
+      }
+    };
+    // Outside click/touch/blur handler
+    const handleOutside = (e) => {
+      if (!mentionDropdownRef.current) return;
+      if (
+        !mentionDropdownRef.current.contains(e.target) &&
+        (!editorRef.current || !editorRef.current.getDoc().body.contains(e.target))
+      ) {
+        setShowMentions(false);
+        mentionPositionLocked.current = false;
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('mousedown', handleOutside, true);
+    document.addEventListener('touchstart', handleOutside, true);
+    window.addEventListener('blur', () => {
+      setShowMentions(false);
+      mentionPositionLocked.current = false;
+    });
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('mousedown', handleOutside, true);
+      document.removeEventListener('touchstart', handleOutside, true);
+    };
+  }, [showMentions, filteredUsers, highlightedIndex, insertMention]);
+
+  // Scroll highlighted item into view
+  useEffect(() => {
+    if (showMentions && mentionListRef.current) {
+      const active = mentionListRef.current.querySelector('.mention-active');
+      if (active) active.scrollIntoView({ block: 'nearest' });
+    }
+  }, [highlightedIndex, showMentions]);
 
   return (
-    <Box sx={{ position: 'relative' }}>
+    <Box sx={{ position: 'relative' }} ref={editorBoxRef}>
       <Box
         sx={{
           border: `1.5px solid ${error ? theme.palette.error.main : theme.palette.grey[300]}`,
@@ -187,8 +308,9 @@ const MarkdownEditor = ({
       {showMentions && (
         <Paper
           elevation={8}
+          ref={mentionDropdownRef}
           sx={{
-            position: 'fixed',
+            position: 'absolute',
             top: `${mentionPosition.top}px`,
             left: `${mentionPosition.left}px`,
             width: 250,
@@ -196,22 +318,29 @@ const MarkdownEditor = ({
             overflow: 'auto',
             zIndex: 1300,
             border: `2px solid ${theme.palette.primary.main}`,
-            boxShadow: 8
+            boxShadow: 8,
+            outline: 'none',
           }}
         >
-          <List sx={{ py: 0 }}>
+          <List sx={{ py: 0 }} ref={mentionListRef}>
             {filteredUsers.map((user, index) => (
               <React.Fragment key={user._id}>
                 <ListItemButton
                   onClick={() => insertMention(user)}
+                  selected={index === highlightedIndex}
+                  className={index === highlightedIndex ? 'mention-active' : ''}
                   sx={{
                     py: 0.5,
                     px: 1,
                     minHeight: 44,
-                    '&:hover': {
-                      backgroundColor: theme.palette.action.hover
-                    }
+                    backgroundColor: index === highlightedIndex ? theme.palette.action.selected : 'inherit',
+                    '&.mention-active, &:hover': {
+                      backgroundColor: theme.palette.action.selected,
+                    },
+                    transition: 'background 0.1s',
                   }}
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                  onMouseDown={e => e.preventDefault()}
                 >
                   <Avatar
                     sx={{
