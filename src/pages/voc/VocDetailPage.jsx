@@ -55,6 +55,8 @@ import {
   VerifiedUser as VerifiedIcon
 } from '@mui/icons-material'
 import Layout from '../../components/common/Layout'
+import vocService from '../../services/vocService'
+import MarkdownPreview from '@uiw/react-markdown-preview'
 
 const VocDetailPage = () => {
   const navigate = useNavigate()
