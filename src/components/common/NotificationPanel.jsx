@@ -11,15 +11,40 @@ import {
 } from '@mui/material'
 import { Close, Circle } from '@mui/icons-material'
 import { useSelector, useDispatch } from 'react-redux'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { markAsRead, closeNotificationPanel } from '../../store/slices/notificationSlice'
+import { markAsRead, closeNotificationPanel, addNotification } from '../../store/slices/notificationSlice'
 import { openModal } from '../../store/slices/uiSlice'
 import notificationService from '../../services/notificationService'
+import socket from '../../services/socket'
 
 const NotificationPanel = () => {
   const { notifications, isOpen } = useSelector((state) => state.notification)
   const dispatch = useDispatch()
   const navigate = useNavigate()
+
+  // Real-time notification listener
+  useEffect(() => {
+    socket.on('new-notification', (notification) => {
+      // Normalize notification to match API format
+      const normalized = {
+        id: notification._id || notification.id,
+        title: notification.type === 'mention' ? 'New Feedback Assigned' : (notification.type || 'Notification'),
+        message: notification.description || '',
+        link: notification.resourceModel === 'Feedback' ? '/feedback' : '/',
+        read: typeof notification.isRead === 'boolean' ? notification.isRead : false,
+        createdAt: notification.createdAt || new Date().toISOString(),
+        toUser: notification.toUser,
+        fromUser: notification.fromUser,
+        resourceId: notification.resourceId,
+        resourceModel: notification.resourceModel
+      };
+      dispatch(addNotification(normalized));
+    });
+    return () => {
+      socket.off('new-notification');
+    };
+  }, [dispatch]);
 
   const handleNotificationClick = async (notification) => {
     if (!notification.read) {
@@ -27,9 +52,11 @@ const NotificationPanel = () => {
       await notificationService.markAsRead(notification.id)
     }
     
-    if (notification.link) {
-      navigate(notification.link)
-      
+    // If it's a Feedback notification, go to /feedback/:id
+    if (notification.resourceModel === 'Feedback' && notification.resourceId) {
+      navigate(`/feedback/${notification.resourceId}`);
+    } else if (notification.link) {
+      navigate(notification.link);
       // If it's a VOC notification with vocId, open the specific VOC detail
       if (notification.vocId && notification.link === '/voc') {
         setTimeout(() => {
@@ -37,10 +64,9 @@ const NotificationPanel = () => {
             modalName: 'detailModal', 
             data: { type: 'voc', vocId: notification.vocId } 
           }))
-        }, 100)
+        }, 100);
       }
     }
-    
     dispatch(closeNotificationPanel())
   }
 
@@ -49,6 +75,14 @@ const NotificationPanel = () => {
   }
 
   if (!isOpen) return null
+
+  // Sort: unread first, then read, newest first within each group
+  const sortedNotifications = [...notifications].sort((a, b) => {
+    if (a.read === b.read) {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+    return a.read ? 1 : -1;
+  });
 
   return (
     <Paper
@@ -71,7 +105,6 @@ const NotificationPanel = () => {
         </IconButton>
       </Box>
       <Divider />
-      
       {notifications.length === 0 ? (
         <Box sx={{ p: 3, textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
@@ -79,8 +112,8 @@ const NotificationPanel = () => {
           </Typography>
         </Box>
       ) : (
-        <List sx={{ maxHeight: 300, overflow: 'auto', p: 0 }}>
-          {notifications.map((notification, index) => (
+        <List sx={{ maxHeight: 300, overflowY: 'auto', p: 0 }}>
+          {sortedNotifications.map((notification, index) => (
             <Box key={notification.id}>
               <ListItem
                 button
@@ -102,19 +135,19 @@ const NotificationPanel = () => {
                       </Typography>
                     }
                     secondary={
-                      <Box>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      <span>
+                        <span style={{ display: 'block', marginBottom: 4, color: 'rgba(0,0,0,0.6)', fontSize: '0.875rem' }}>
                           {notification.message}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        </span>
+                        <Typography variant="caption" color="text.secondary" component="span">
                           {new Date(notification.createdAt).toLocaleString()}
                         </Typography>
-                      </Box>
+                      </span>
                     }
                   />
                 </Box>
               </ListItem>
-              {index < notifications.length - 1 && <Divider />}
+              {index < sortedNotifications.length - 1 && <Divider />}
             </Box>
           ))}
         </List>

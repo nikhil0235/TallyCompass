@@ -51,9 +51,11 @@ import Layout from '../../components/common/Layout'
 import FeedbackCard from '../../components/cards/FeedbackCard'
 import { openModal, showConfirmDialog } from '../../store/slices/uiSlice'
 import { useDispatch } from 'react-redux'
+import { useParams } from 'react-router-dom'
 import feedbackService from '../../services/feedbackService'
 
 const ITEMS_PER_PAGE = 10
+
 
 const FeedbackPage = () => {
   const [feedback, setFeedback] = useState([])
@@ -67,10 +69,17 @@ const FeedbackPage = () => {
   const dispatch = useDispatch()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const { id } = useParams();
 
   useEffect(() => {
-    loadFeedback()
-  }, [])
+    if (id) {
+      // Load single feedback by id
+      loadFeedbackById(id);
+    } else {
+      loadFeedback();
+    }
+    // eslint-disable-next-line
+  }, [id]);
 
   const loadFeedback = async () => {
     try {
@@ -79,6 +88,19 @@ const FeedbackPage = () => {
       setFeedback(data)
     } catch (error) {
       console.error('Error loading feedback:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadFeedbackById = async (feedbackId) => {
+    try {
+      setLoading(true)
+      const data = await feedbackService.getById(feedbackId)
+      setFeedback(data ? [data] : [])
+    } catch (error) {
+      setFeedback([])
+      console.error('Error loading feedback by id:', error)
     } finally {
       setLoading(false)
     }
@@ -225,7 +247,7 @@ const FeedbackPage = () => {
           </Stack>
 
           <Grid container spacing={2} alignItems="flex-end">
-            <Grid item xs={12} sm={6} md={5}>
+            <Grid>
               <TextField
                 fullWidth
                 size="small"
@@ -245,7 +267,7 @@ const FeedbackPage = () => {
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={2.5}>
+            <Grid>
               <FormControl fullWidth size="small">
                 <InputLabel>Medium</InputLabel>
                 <Select

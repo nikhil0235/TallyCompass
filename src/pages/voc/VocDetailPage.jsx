@@ -296,6 +296,45 @@ const VocDetailPage = () => {
                 </Typography>
               </Box>
 
+            {/* Feedbacks */}
+            {feedbacks.length > 0 && (
+              <Card sx={{ borderRadius: '12px', mb: 3 }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center' }}>
+                    <FeedbackIcon sx={{ mr: 1 }} />
+                    Customer Feedback
+                    <Badge badgeContent={feedbacks.length} color="primary" sx={{ ml: 1 }} />
+                  </Typography>
+                  <List sx={{ p: 0 }}>
+                    {feedbacks.filter(feedback => feedback).map((feedback, index) => (
+                      <ListItem key={index} sx={{ px: 0, py: 2, borderBottom: index < feedbacks.length - 1 ? `1px solid ${theme.palette.divider}` : 'none' }}>
+                        <ListItemAvatar>
+                          <Avatar sx={{ bgcolor: theme.palette.success.main }}>
+                            <StarIcon />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={`Rating: ${feedback?.rating || 'N/A'}/5`}
+                          secondary={
+                            <Box>
+                              {feedback?.description && (
+                                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                  {feedback.description}
+                                </Typography>
+                              )}
+                              <Typography variant="caption" color="text.secondary">
+                                Medium: {feedback?.medium || 'N/A'} • {formatDate(feedback?.createdAt)}
+                              </Typography>
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </CardContent>
+              </Card>
+            )}
+          </Grid>
               <Typography
                 variant="body2"
                 color="text.secondary"
