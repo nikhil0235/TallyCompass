@@ -55,14 +55,9 @@ const NotificationPanel = () => {
     // Feedback: go to /feedback/:id
     if (notification.resourceModel === 'Feedback' && notification.resourceId) {
       navigate(`/feedback/${notification.resourceId}`);
-    // VOC: open modal
+    // VOC: go to /voc/:id
     } else if (notification.resourceModel === 'VOC' && notification.resourceId) {
-      setTimeout(() => {
-        dispatch(openModal({
-          modalName: 'detailModal',
-          data: { type: 'voc', vocId: notification.resourceId }
-        }));
-      }, 100);
+      navigate(`/voc/${notification.resourceId}`);
     // CustomerRequest: go to /requests/:id
     } else if (notification.resourceModel === 'CustomerRequest' && notification.resourceId) {
       navigate(`/requests/${notification.resourceId}`);
