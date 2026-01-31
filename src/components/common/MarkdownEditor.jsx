@@ -76,41 +76,52 @@ const MarkdownEditor = ({
         setShowMentions(true)
         setMentionQuery(afterAt)
         setHighlightedIndex(0)
-        // Only set position if not already locked
-        if (!mentionPositionLocked.current) {
-          setTimeout(() => {
-            if (editorRef.current && editorBoxRef.current) {
-              const iframe = editorRef.current.iframeElement || editorRef.current.getDoc()?.defaultView?.frameElement;
-              if (iframe) {
-                const win = iframe.contentWindow;
-                const sel = win.getSelection();
-                if (sel && sel.rangeCount > 0) {
-                  const range = sel.getRangeAt(0).cloneRange();
-                  const rect = range.getClientRects()[0];
-                  if (rect) {
-                    // Get iframe and editor box position relative to page
-                    const iframeRect = iframe.getBoundingClientRect();
-                    const editorBoxRect = editorBoxRef.current.getBoundingClientRect();
-                    // Calculate dropdown position relative to editor box
-                    let top = rect.bottom + iframeRect.top - editorBoxRect.top;
-                    let left = rect.left + iframeRect.left - editorBoxRect.left;
-                    // Prevent overflow from editor box
-                    const dropdownWidth = 250;
-                    const dropdownHeight = 200;
-                    if (left + dropdownWidth > editorBoxRect.width) {
-                      left = editorBoxRect.width - dropdownWidth - 8;
-                    }
-                    if (top + dropdownHeight > editorBoxRect.height) {
-                      top = editorBoxRect.height - dropdownHeight - 8;
-                    }
-                    setMentionPosition({ top, left });
-                    mentionPositionLocked.current = true;
+        // Always recalculate position from the @ character
+        setTimeout(() => {
+          if (editorRef.current && editorBoxRef.current) {
+            const editor = editorRef.current;
+            const iframe = editor.iframeElement || editor.getDoc()?.defaultView?.frameElement;
+            if (iframe) {
+              const win = iframe.contentWindow;
+              const sel = win.getSelection();
+              if (sel && sel.rangeCount > 0) {
+                const range = sel.getRangeAt(0).cloneRange();
+                // Move range start to the last @ position in the text node
+                let container = range.startContainer;
+                let offset = range.startOffset;
+                if (container.nodeType === 3) {
+                  const text = container.data;
+                  const uptoCaret = text.slice(0, offset);
+                  const atIdx = uptoCaret.lastIndexOf('@');
+                  if (atIdx !== -1) {
+                    range.setStart(container, atIdx);
+                    range.setEnd(container, atIdx + 1);
                   }
+                }
+                const rect = range.getClientRects()[0];
+                if (rect) {
+                  // Get iframe and editor box position relative to page
+                  const iframeRect = iframe.getBoundingClientRect();
+                  const editorBoxRect = editorBoxRef.current.getBoundingClientRect();
+                  // Calculate dropdown position relative to editor box
+                  let top = rect.bottom + iframeRect.top - editorBoxRect.top;
+                  let left = rect.left + iframeRect.left - editorBoxRect.left;
+                  // Prevent overflow from editor box
+                  const dropdownWidth = 250;
+                  const dropdownHeight = 200;
+                  if (left + dropdownWidth > editorBoxRect.width) {
+                    left = editorBoxRect.width - dropdownWidth - 8;
+                  }
+                  if (top + dropdownHeight > editorBoxRect.height) {
+                    top = editorBoxRect.height - dropdownHeight - 8;
+                  }
+                  setMentionPosition({ top, left });
+                  mentionPositionLocked.current = true;
                 }
               }
             }
-          }, 0);
-        }
+          }
+        }, 0);
       } else {
         setShowMentions(false)
         mentionPositionLocked.current = false;
@@ -122,72 +133,45 @@ const MarkdownEditor = ({
   }
 
   const insertMention = useCallback((user) => {
-    if (!editorRef.current) return
+    if (!editorRef.current) return;
     try {
       const editor = editorRef.current;
-      const content = editor.getContent();
-      const plainText = content.replace(/<[^>]*>/g, '');
-      const lastAtIndex = plainText.lastIndexOf('@');
-      if (lastAtIndex !== -1) {
-        const beforeAt = plainText.substring(0, lastAtIndex);
-        const afterAt = plainText.substring(lastAtIndex + 1);
-        const afterMention = afterAt.replace(/^[a-zA-Z]*/, '');
-        const mentionText = `@${user.userName}`;
-        const newContent = `${beforeAt}${mentionText} ${afterMention}`;
-        editor.setContent(newContent);
-        onChange(newContent);
-        // Move cursor after the inserted mention and space, even with multiple mentions
-        setTimeout(() => {
-          const doc = editor.getDoc();
-          const body = editor.getBody();
-          // Find the last occurrence of the mentionText + ' '
-          const searchText = `${mentionText} `;
-          let charCount = 0;
-          let targetStart = -1;
-          function findLastMention(node) {
-            if (node.nodeType === 3) { // text node
-              let idx = -1;
-              let searchFrom = 0;
-              while ((idx = node.data.indexOf(searchText, searchFrom)) !== -1) {
-                targetStart = charCount + idx + searchText.length;
-                searchFrom = idx + 1;
-              }
-              charCount += node.data.length;
-            } else if (node.nodeType === 1 && node.childNodes) {
-              for (let i = 0; i < node.childNodes.length; i++) {
-                findLastMention(node.childNodes[i]);
-              }
-            }
-          }
-          findLastMention(body);
-          if (targetStart !== -1) {
-            // Set the cursor at the end of the last inserted mention
-            let currCount = 0;
-            let found = false;
-            function setCursor(node) {
-              if (found) return;
-              if (node.nodeType === 3) {
-                if (currCount + node.length >= targetStart) {
-                  const range = doc.createRange();
-                  range.setStart(node, targetStart - currCount);
-                  range.collapse(true);
-                  editor.selection.setRng(range);
-                  found = true;
-                }
-                currCount += node.length;
-              } else if (node.nodeType === 1 && node.childNodes) {
-                for (let i = 0; i < node.childNodes.length; i++) {
-                  setCursor(node.childNodes[i]);
-                  if (found) break;
-                }
-              }
-            }
-            setCursor(body);
-          }
-        }, 0);
+      editor.focus();
+      // Remove the @ and any partial mention before the caret
+      const sel = editor.selection;
+      const rng = sel.getRng();
+      let container = rng.startContainer;
+      let offset = rng.startOffset;
+      // Only handle text nodes
+      if (container.nodeType === 3) {
+        const text = container.data;
+        // Find the last @ before the caret
+        const uptoCaret = text.slice(0, offset);
+        const atIdx = uptoCaret.lastIndexOf('@');
+        if (atIdx !== -1) {
+          // Remove from @ to caret
+          const before = text.slice(0, atIdx);
+          const after = text.slice(offset);
+          const mentionWithSpace = `@${user.userName} `;
+          // Replace the text node with before + mention + after
+          container.data = before + mentionWithSpace + after;
+          // Set cursor after the mention
+          const newOffset = before.length + mentionWithSpace.length;
+          const newRng = document.createRange();
+          newRng.setStart(container, newOffset);
+          newRng.collapse(true);
+          sel.setRng(newRng);
+        } else {
+          // fallback: just insert at caret
+          sel.setContent(`@${user.userName} `);
+        }
+      } else {
+        // fallback: just insert at caret
+        sel.setContent(`@${user.userName} `);
       }
+      onChange(editor.getContent());
     } catch (err) {
-      console.error('Error inserting mention:', err)
+      console.error('Error inserting mention:', err);
     }
     setShowMentions(false);
     mentionPositionLocked.current = false;
