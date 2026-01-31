@@ -7,7 +7,9 @@ import Dashboard from './pages/Dashboard'
 import CustomersPage from './pages/customers/CustomersPage'
 import ProductsPage from './pages/products/ProductsPage'
 import FeedbackPage from './pages/feedback/FeedbackPage'
+import FeedbackDetailPage from './pages/feedback/FeedbackDetailPage'
 import RequestsPage from './pages/requests/RequestsPage'
+import RequestDetailPage from './pages/requests/RequestDetailPage'
 import VocPage from './pages/voc/VocPage'
 import VocDetailPage from './pages/voc/VocDetailPage'
 import ProfilePage from './pages/profile/ProfilePage'
@@ -108,7 +110,7 @@ function App() {
           path="/feedback/:id" 
           element={
             <ProtectedRoute>
-              <FeedbackPage />
+              <FeedbackDetailPage />
             </ProtectedRoute>
           } 
         />
@@ -117,6 +119,14 @@ function App() {
           element={
             <ProtectedRoute>
               <RequestsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/requests/:id" 
+          element={
+            <ProtectedRoute>
+              <RequestDetailPage />
             </ProtectedRoute>
           } 
         />

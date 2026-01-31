@@ -383,7 +383,7 @@ const RequestsPage = () => {
                     }}
                   >
                     {paginatedRequests.map((request) => (
-                      <Box key={request.id} sx={{ animation: 'fadeIn 0.3s ease', height: 'fit-content' }}>
+                      <Box key={request._id} sx={{ animation: 'fadeIn 0.3s ease', height: 'fit-content' }}>
                         <RequestCard
                           request={request}
                           onStatusUpdate={handleStatusUpdate}

@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
   CardContent, 
@@ -19,6 +20,7 @@ const RequestCard = memo(({
   priorityColor = 'default'
 }) => {
   const theme = useTheme()
+  const navigate = useNavigate();
 
   const getStatusGradient = (status) => {
     const gradients = {
@@ -70,10 +72,16 @@ const RequestCard = memo(({
         transition: 'all 0.2s ease',
         position: 'relative',
         overflow: 'hidden',
+        cursor: 'pointer',
         '&:hover': { 
           boxShadow: `0 8px 20px ${theme.palette.primary.main}20`,
           transform: 'translateY(-4px)',
           border: `2px solid ${theme.palette.primary.main}40`,
+        }
+      }}
+      onClick={() => {
+        if (request && request._id) {
+          navigate(`/requests/${request._id}`)
         }
       }}
     >
