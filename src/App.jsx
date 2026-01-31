@@ -17,7 +17,7 @@ import DetailModal from './components/modals/DetailModal'
 import CustomerForm from './components/forms/CustomerForm'
 import ProductForm from './components/forms/ProductForm'
 import FeedbackForm from './components/forms/FeedbackForm'
-import VocForm from './components/forms/VocForm'
+import VocForm from './components/forms/VocFormModular'
 import { Box, CircularProgress } from '@mui/material'
 import './App.css'
 
