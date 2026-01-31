@@ -55,6 +55,7 @@ import {
   VerifiedUser as VerifiedIcon
 } from '@mui/icons-material'
 import Layout from '../../components/common/Layout'
+import MarkdownPreview from '@uiw/react-markdown-preview'
 
 const VocDetailPage = () => {
   const navigate = useNavigate()
@@ -296,17 +297,23 @@ const VocDetailPage = () => {
                 </Typography>
               </Box>
 
-              <Typography
-                variant="body2"
-                color="text.secondary"
+              <Box
                 sx={{
                   lineHeight: 1.6,
                   maxWidth: '700px',
-                  mb: 1.5
+                  mb: 1.5,
+                  '& .wmde-markdown': {
+                    backgroundColor: 'transparent !important',
+                    color: theme.palette.text.secondary
+                  }
                 }}
               >
-                {voc.description || 'No description available'}
-              </Typography>
+                <MarkdownPreview 
+                  source={voc.description || 'No description available'} 
+                  style={{ backgroundColor: 'transparent', fontSize: '0.875rem' }}
+                  data-color-mode={theme.palette.mode}
+                />
+              </Box>
               
               <Typography variant="caption" color="text.secondary">
                 Last updated: {formatDate(voc.updatedAt)}
@@ -416,9 +423,13 @@ const VocDetailPage = () => {
                     <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.9rem', mb: 1 }}>
                       Project Details
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.4, fontSize: '0.85rem' }}>
-                      {voc.description || 'No description available'}
-                    </Typography>
+                    <Box sx={{ mb: 2, lineHeight: 1.4, fontSize: '0.85rem' }}>
+                      <MarkdownPreview 
+                        source={voc.description || 'No description available'} 
+                        style={{ backgroundColor: 'transparent', fontSize: '0.85rem' }}
+                        data-color-mode={theme.palette.mode}
+                      />
+                    </Box>
                     <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                       <TimelineItem
                         icon={<CalendarIcon />}

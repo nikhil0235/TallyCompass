@@ -33,6 +33,7 @@ import { closeModal } from '../../store/slices/uiSlice'
 import { createVocSuccess, updateVocSuccess, vocFailure } from '../../store/slices/vocSlice'
 import vocService from '../../services/vocService'
 import customerService from '../../services/customerService'
+import userService from '../../services/userService'
 import feedbackService from '../../services/feedbackService'
 import customerRequestService from '../../services/customerRequestService'
 
@@ -99,6 +100,7 @@ const VocForm = () => {
   const [activeStep, setActiveStep] = useState(0)
   const [formData, setFormData] = useState(INITIAL_FORM_STATE)
   const [customers, setCustomers] = useState([])
+  const [users, setUsers] = useState([])
   const [feedbacks, setFeedbacks] = useState([])
   const [customerRequests, setCustomerRequests] = useState([])
   const [loading, setLoading] = useState(false)
@@ -126,17 +128,20 @@ const VocForm = () => {
     try {
       setDataLoading(true)
       setError('')
-      const [customersData, feedbacksData, requestsData] = await Promise.all([
+      const [customersData, usersData, feedbacksData, requestsData] = await Promise.allSettled([
         customerService.getAll(),
+        userService.getAll(),
         feedbackService.getAll(),
         customerRequestService.getAll()
       ])
-      setCustomers(Array.isArray(customersData) ? customersData : [])
-      setFeedbacks(Array.isArray(feedbacksData) ? feedbacksData : [])
-      setCustomerRequests(Array.isArray(requestsData) ? requestsData : [])
+      
+      setCustomers(customersData.status === 'fulfilled' && Array.isArray(customersData.value) ? customersData.value : [])
+      setUsers(usersData.status === 'fulfilled' && Array.isArray(usersData.value) ? usersData.value : [])
+      setFeedbacks(feedbacksData.status === 'fulfilled' && Array.isArray(feedbacksData.value) ? feedbacksData.value : [])
+      setCustomerRequests(requestsData.status === 'fulfilled' && Array.isArray(requestsData.value) ? requestsData.value : [])
     } catch (err) {
       console.error('Failed to load data:', err)
-      setError('Failed to load required data. Please try again.')
+      setError('Some data could not be loaded. You can still create a VOC project.')
     } finally {
       setDataLoading(false)
     }
@@ -258,6 +263,7 @@ const VocForm = () => {
             formData={formData}
             setFormData={setFormData}
             customers={customers}
+            users={users}
             loading={loading}
             dataLoading={dataLoading}
             handleChange={handleChange}

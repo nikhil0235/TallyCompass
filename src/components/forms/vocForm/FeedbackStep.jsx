@@ -10,6 +10,7 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material'
 import { useState, useMemo, useCallback } from 'react'
+import MarkdownEditor from '../../common/MarkdownEditor'
 
 const FeedbackStep = ({ 
   formData = {}, 
@@ -321,16 +322,20 @@ const FeedbackStep = ({
                 </IconButton>
               </Box>
               <Box sx={{ display: 'grid', gap: 2 }}>
-                <TextField
-                  label="Feedback Text"
-                  value={newFeedback.feedbackText || ''}
-                  onChange={(e) => setNewFeedback(prev => ({ ...prev, feedbackText: e.target.value }))}
-                  multiline
-                  rows={2}
-                  size="small"
-                  error={!!validationErrors.feedbackText}
-                  helperText={validationErrors.feedbackText}
-                />
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                    Feedback Text
+                  </Typography>
+                  <MarkdownEditor
+                    value={newFeedback.feedbackText || ''}
+                    onChange={(value) => setNewFeedback(prev => ({ ...prev, feedbackText: value }))}
+                    placeholder="Enter feedback text..."
+                    disabled={isSubmitting}
+                    height={200}
+                    error={!!validationErrors.feedbackText}
+                    helperText={validationErrors.feedbackText}
+                  />
+                </Box>
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
                   <TextField
                     label="Rating"

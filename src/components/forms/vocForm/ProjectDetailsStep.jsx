@@ -1,6 +1,7 @@
 import { Box, Card, CardContent, Grid, TextField, MenuItem, Typography, useTheme, Tooltip, Chip, LinearProgress } from '@mui/material'
 import { BuildCircle as BuildIcon, CalendarToday as CalendarIcon, InfoOutlined as InfoIcon } from '@mui/icons-material'
 import { useState, useMemo } from 'react'
+import MarkdownEditor from '../../common/MarkdownEditor'
 
 const STATUS_OPTIONS = [
   { value: 'Upcoming', label: 'Upcoming', color: 'info' },
@@ -205,25 +206,12 @@ const ProjectDetailsStep = ({ formData, handleChange, loading }) => {
                   <InfoIcon sx={{ fontSize: 16, color: theme.palette.text.secondary, cursor: 'pointer' }} />
                 </Tooltip>
               </Box>
-              <TextField
-                name="description"
+              <MarkdownEditor
                 value={formData.description}
-                onChange={handleChange}
-                onFocus={() => setFocusedField('description')}
-                onBlur={() => setFocusedField(null)}
-                fullWidth
-                multiline
-                rows={5}
+                onChange={(value) => handleChange({ target: { name: 'description', value } })}
+                placeholder="Describe your project objectives, scope, and key deliverables..."
                 disabled={loading}
-                placeholder="Describe the purpose, scope, and objectives of this VOC initiative..."
-                variant="outlined"
-                sx={{
-                  ...getFieldStyles('description'),
-                  '& .MuiOutlinedInput-root': {
-                    ...getFieldStyles('description')['& .MuiOutlinedInput-root'],
-                    minHeight: '120px'
-                  }
-                }}
+                height={500}
               />
             </Box>
 

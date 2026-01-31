@@ -54,7 +54,7 @@ const CustomerSelectionStep = ({ formData, setFormData, customers, loading, data
                 />
               )}
               renderOption={(props, option) => (
-                <Box component="li" {...props} sx={{ p: 2, minHeight: '60px', borderBottom: `1px solid ${theme.palette.divider}`, width: '100%' }}>
+                <Box component="li" {...props} key={option._id} sx={{ p: 2, minHeight: '60px', borderBottom: `1px solid ${theme.palette.divider}`, width: '100%' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
                     <Avatar sx={{ 
                       width: 32, 
