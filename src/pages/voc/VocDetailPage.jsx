@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import {
   Box,
   Card,
@@ -55,13 +55,17 @@ import {
   VerifiedUser as VerifiedIcon
 } from '@mui/icons-material'
 import Layout from '../../components/common/Layout'
+import vocService from '../../services/vocService'
 import MarkdownPreview from '@uiw/react-markdown-preview'
 
 const VocDetailPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { id } = useParams();
   const theme = useTheme()
-  const voc = location.state?.voc
+  const [voc, setVoc] = useState(location.state?.voc || null)
+  const [loading, setLoading] = useState(!location.state?.voc)
+  const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState(0)
   const [metrics, setMetrics] = useState({
     avgRating: 0,
@@ -69,6 +73,21 @@ const VocDetailPage = () => {
     totalRequests: 0,
     mediaCount: 0
   })
+
+  useEffect(() => {
+    if (!voc && id) {
+      setLoading(true);
+      vocService.getById(id)
+        .then((res) => {
+          setVoc(res)
+          setError(null)
+        })
+        .catch(() => {
+          setError('VOC Project Not Found')
+        })
+        .finally(() => setLoading(false))
+    }
+  }, [id, voc])
 
   useEffect(() => {
     if (voc) {
@@ -178,7 +197,16 @@ const VocDetailPage = () => {
     ? Math.round((metrics.resolvedRequests / metrics.totalRequests) * 100)
     : 0
 
-  if (!voc) {
+  if (loading) {
+    return (
+      <Layout>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <Typography variant="h6">Loading VOC Project...</Typography>
+        </Box>
+      </Layout>
+    )
+  }
+  if (error || !voc) {
     return (
       <Layout>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>

@@ -52,22 +52,19 @@ const NotificationPanel = () => {
       await notificationService.markAsRead(notification.id)
     }
     
-    // If it's a Feedback notification, go to /feedback/:id
+    // Feedback: go to /feedback/:id
     if (notification.resourceModel === 'Feedback' && notification.resourceId) {
       navigate(`/feedback/${notification.resourceId}`);
+    // VOC: go to /voc/:id
+    } else if (notification.resourceModel === 'VOC' && notification.resourceId) {
+      navigate(`/voc/${notification.resourceId}`);
+    // CustomerRequest: go to /requests/:id
+    } else if (notification.resourceModel === 'CustomerRequest' && notification.resourceId) {
+      navigate(`/requests/${notification.resourceId}`);
     } else if (notification.link) {
       navigate(notification.link);
-      // If it's a VOC notification with vocId, open the specific VOC detail
-      if (notification.vocId && notification.link === '/voc') {
-        setTimeout(() => {
-          dispatch(openModal({ 
-            modalName: 'detailModal', 
-            data: { type: 'voc', vocId: notification.vocId } 
-          }))
-        }, 100);
-      }
     }
-    dispatch(closeNotificationPanel())
+    dispatch(closeNotificationPanel());
   }
 
   const handleClose = () => {

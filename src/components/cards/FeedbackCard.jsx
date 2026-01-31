@@ -11,6 +11,7 @@ import {
   Tooltip,
   useTheme
 } from '@mui/material'
+import { useNavigate } from 'react-router-dom';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -23,6 +24,7 @@ import {
 
 const FeedbackCard = ({ feedback }) => {
   const theme = useTheme()
+  const navigate = useNavigate();
 
   const getRatingGradient = (rating) => {
     if (rating >= 4) return `linear-gradient(135deg, ${theme.palette.success.main}15, ${theme.palette.info.main}08)`
@@ -61,12 +63,14 @@ const FeedbackCard = ({ feedback }) => {
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         position: 'relative',
         overflow: 'hidden',
+        cursor: 'pointer',
         '&:hover': {
           boxShadow: `0 8px 20px ${theme.palette.primary.main}20`,
           transform: 'translateY(-4px)',
           border: `2px solid ${theme.palette.primary.main}40`,
         },
       }}
+      onClick={() => navigate(`/feedback/${feedback._id}`)}
     >
       <CardContent sx={{ flexGrow: 1, p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
         {/* Header with Customer and Rating */}
